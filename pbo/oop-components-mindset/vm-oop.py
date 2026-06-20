@@ -1,123 +1,154 @@
+import time
 from abc import ABC, abstractmethod
 
-# =====================================================================
-# 1. CLASS & 6. ABSTRACTION
-# =====================================================================
-# Class Minuman ini adalah CETAKAN ABSTRAK (Blueprint).
-# Gak bisa dibikin Object langsung, karena minuman itu harus jelas panas/dinginnya.
+# =========================================================
+# Sistem vending mesin dengan OOP (Class, Object, Inheritance, 
+# Encapsulation, Polymorphism, Abstraction)
+# VERSI MURNI TANPA DATABASE (Menggunakan Dictionary In-Memory)
+# =========================================================
+
+# =========================================================
+# BLUEPRINT PRODUCT (OOP)
+# =========================================================
 class Minuman(ABC):
-    def __init__(self, nama, harga):
-        # 3. ENCAPSULATION
-        # Pakai double underscore (__) biar jadi PRIVATE.
-        # Artinya 'nama' & 'harga' gak bisa diubah langsung dari luar.
+    def __init__(self, id_produk, nama, harga):
+        self.__id = id_produk
         self.__nama = nama
         self.__harga = harga
 
-    # Ini jalur resmi (public method) buat ngambil data private di atas
+    def get_id(self):
+        return self.__id
+
     def get_nama(self):
         return self.__nama
 
     def get_harga(self):
         return self.__harga
 
-    # Ini metode abstrak. Semua class anak WAJIB bikin implementasinya!
     @abstractmethod
-    def proses_keluar(self):
+    def keluar_efek(self):
         pass
 
-
-# =====================================================================
-# 4. INHERITANCE (PEWARISAN)
-# =====================================================================
-# MinumanDingin mewarisi sifat nama & harga dari Minuman
 class MinumanDingin(Minuman):
-    
-    # 5. POLYMORPHISM
-    # Cara dia keluar beda dari minuman panas!
-    def proses_keluar(self):
-        return f"❄️  [DINGIN] {self.get_nama()} jatuh dari rak pendingin! KLONTANG!"
+    def keluar_efek(self):
+        return f"❄️  KLONTANG! {self.get_nama()} dingin meluncur!"
 
-
-# MinumanPanas juga mewarisi sifat dari Minuman
 class MinumanPanas(Minuman):
-    
-    # 5. POLYMORPHISM
-    # Cara dia keluar pake efek pemanas
-    def proses_keluar(self):
-        return f"🔥 [PANAS] {self.get_nama()} disiapkan dari heater! SSSSHHH..."
+    def keluar_efek(self):
+        return f"🔥 SSSHH... {self.get_nama()} panas sudah siap!"
 
 
-# =====================================================================
-# CLASS VENDING MACHINE 
-# =====================================================================
+# =========================================================
+# SISTEM VENDING MACHINE INTERAKTIF
+# =========================================================
 class VendingMachine:
     def __init__(self):
-        # 3. ENCAPSULATION
-        # Stok dibungkus rahasia (private), gak boleh diutak-atik pembeli!
-        self.__stok = {}
+        # Pengganti Database: Data disimpan dalam struktur Dictionary (Encapsulation)
+        self.__stok_produk = {
+            "1": {"nama": "Coca Cola", "harga": 7000, "jumlah": 3},
+            "2": {"nama": "Pocari Sweat", "harga": 9000, "jumlah": 2},
+            "3": {"nama": "Teh Pucuk Harum", "harga": 4000, "jumlah": 5},
+            "4": {"nama": "Kopi Good Day", "harga": 6000, "jumlah": 4},
+            "5": {"nama": "Susu Ultra Milk", "harga": 8500, "jumlah": 1},
+        }
 
-    def tambah_minuman(self, minuman, jumlah):
-        self.__stok[minuman] = jumlah
+    def format_rupiah(self, nominal):
+        return f"Rp {nominal:,.0f}".replace(",", ".")
 
-    # 6. ABSTRACTION
-    # Pembeli cuma manggil fungsi ini. Mereka gak tau kalau di dalem sini
-    # ada validasi stok, pengurangan data, dll. Pokoknya tau beres!
-    def beli(self, minuman, bayar):
-        print(f"\n🛒 Mencoba beli {minuman.get_nama()} dengan uang Rp {bayar}...")
-        
-        # Cek stok di dalam (Encapsulation beraksi)
-        if self.__stok.get(minuman, 0) <= 0:
-            print("❌ Gagal: Stok habis bro!")
-            return
+    def tampilkan_menu(self):
+        print("\n" + "=" * 45)
+        print("🥤     VENDING MACHINE PRODUCT LIST    🥤")
+        print("=" * 45)
+        print(f"{'No':<5} | {'Nama Produk':<20} | {'Harga':<10} | {'Stok'}")
+        print("-" * 45)
 
-        # Validasi harga
-        harga = minuman.get_harga()
-        if bayar < harga:
-            print(f"💸 Gagal: Duit lu kurang! Harganya Rp {harga}.")
-            return
+        # Mengambil data dari Dictionary Local
+        for id_p, data in self.__stok_produk.items():
+            status_stok = data["jumlah"] if data["jumlah"] > 0 else "HABIS!"
+            harga_rp = self.format_rupiah(data["harga"])
+            print(f"[{id_p}]   | {data['nama']:<20} | {harga_rp:<10} | {status_stok}")
 
-        # Eksekusi pembelian
-        self.__stok[minuman] -= 1
-        kembalian = bayar - harga
-        
-        # POLYMORPHISM BERAKSI DI SINI!
-        # Mesin tinggal panggil .proses_keluar(), bentuk aksinya bakal ngikutin jenis minumannya!
-        print(minuman.proses_keluar())
-        
-        if kembalian > 0:
-            print(f"💵 Kembalian lu: Rp {kembalian}")
-        print("✅ Transaksi Sukses!")
+        print("=" * 45)
 
+    def cetak_resi(self, produk, bayar, kembalian):
+        print("\n" + "." * 35)
+        print(" 🧾 STRUK PEMBELIAN VENDING MACHINE 🧾")
+        print("." * 35)
+        print(f" Produk  : {produk.get_nama()}")
+        print(f" Harga   : {self.format_rupiah(produk.get_harga())}")
+        print(f" Dibayar : {self.format_rupiah(bayar)}")
+        print(f" Kembali : {self.format_rupiah(kembalian)}")
+        print("." * 35)
+        print(" Terima kasih sudah berbelanja... 😎\n")
 
-# =====================================================================
-# 2. OBJECT (WUJUD NYATA)
-# =====================================================================
-# Di bagian bawah ini, cetakan Class tadi kita wujudin jadi Object nyata!
+    def mulai_operasi(self):
+        while True:
+            self.tampilkan_menu()
+            pilihan = input("👉 Masukkan nomor produk (0 untuk keluar): ")
+
+            if pilihan == "0":
+                print("\nSelamat Berbelanja Kembali...\n")
+                break
+
+            # 🛠️ Hubungkan ke Dictionary buat nyari produk
+            if pilihan not in self.__stok_produk:
+                print("\n❌ Nomor produk tidak ada di menu!\n")
+                continue
+
+            produk_pilihan = self.__stok_produk[pilihan]
+            nama_produk = produk_pilihan["nama"]
+            harga_produk = produk_pilihan["harga"]
+            stok_produk = produk_pilihan["jumlah"]
+
+            if stok_produk <= 0:
+                print(f"\n❌ {nama_produk} habis! Pilih yang lain.\n")
+                continue
+
+            try:
+                harga_rp = self.format_rupiah(harga_produk)
+                print(f"\n🛒 Product: {nama_produk} | Harga: {harga_rp}")
+                uang_masuk = float(input("💵 Masukkan Jumlah Uang Anda (Rp): "))
+            except ValueError:
+                print("\n❌ Input angka nominal uang yang sesuai!\n")
+                continue
+
+            if uang_masuk < harga_produk:
+                kurang = harga_produk - uang_masuk
+                print(f"\n💸 Nominal Kurang! kurang {self.format_rupiah(kurang)}.\n")
+                continue
+
+            # --- PROSES BERHASIL ---
+            kembalian = uang_masuk - harga_produk
+
+            # UPDATE STOK DI DICTIONARY REAL-TIME
+            self.__stok_produk[pilihan]["jumlah"] -= 1
+
+            # Jeda dramatis 3 detik request lu
+            print("\n⚙️  Memproses pesanan", end="", flush=True)
+            for _ in range(3):
+                time.sleep(1)
+                print(".", end="", flush=True)
+            print("\n")
+
+            # Polimorfisme secara dinamis agar konsep OOP-nya tetap jalan
+            if "Kopi" in nama_produk or "Susu" in nama_produk:
+                produk_objek = MinumanPanas(pilihan, nama_produk, harga_produk)
+            else:
+                produk_objek = MinumanDingin(pilihan, nama_produk, harga_produk)
+
+            print(f"{produk_objek.keluar_efek()}\n")
+
+            # Cetak Resi
+            self.cetak_resi(produk_objek, uang_masuk, kembalian)
+
+            lanjut = input("👉 Mau beli lagi? (y/n): ").lower()
+            if lanjut != "y":
+                print("\n👋 Sampai jumpa lagi!\n")
+                break
+
+# =========================================================
+# MAIN PROGRAM EXECUTOR
+# =========================================================
 if __name__ == "__main__":
-    
-    print("🛠️ MENGHIDUPKAN VENDING MACHINE...\n" + "="*40)
-    
-    # Bikin Object Minuman
-    pocari = MinumanDingin("Pocari Sweat", 9000)
-    kopi = MinumanPanas("Kopi Boss", 12000)
-    
-    # Bikin Object Mesin
-    mesin_stasiun = VendingMachine()
-    
-    # Masukin stok ke dalam mesin (2 pocari, 1 kopi)
-    mesin_stasiun.tambah_minuman(pocari, 2)
-    mesin_stasiun.tambah_minuman(kopi, 1)
-
-    # --- SIMULASI PEMBELIAN ---
-    
-    # Skenario 1: Beli Pocari (sukses)
-    mesin_stasiun.beli(pocari, 10000)
-
-    # Skenario 2: Beli Kopi tapi duit kurang
-    mesin_stasiun.beli(kopi, 10000)
-    
-    # Skenario 3: Beli Kopi duit pas
-    mesin_stasiun.beli(kopi, 12000)
-
-    # Skenario 4: Maksa beli Kopi lagi padahal stok cuma 1 tadi
-    mesin_stasiun.beli(kopi, 50000)
+    mesin = VendingMachine()
+    mesin.mulai_operasi()
