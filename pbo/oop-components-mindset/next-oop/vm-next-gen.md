@@ -1,4 +1,4 @@
-# 🤖 Vending Machine Suica - PBL09 PBO (Modern Python)
+# 🤖 Vending Machine Suica - PBL09-PBO
 
 Repositori ini berisi implementasi simulasi sistem Vending Machine Suica untuk memenuhi tugas Project Based Learning (PBL09) mata kuliah Pemrograman Berorientasi Objek (PBO). 
 
